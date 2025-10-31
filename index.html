@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: white;
+        }
+        .gallery {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .gallery img {
+            height: 200px;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="gallery" id="gallery"></div>
+
+    <script>
+        const gallery = document.getElementById('gallery');
+        const formats = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
+        
+        function loadImages() {
+            let index = 1;
+            let missingCount = 0;
+            
+            function checkNextImage() {
+                if (missingCount >= 5) {
+                    return; // Останавливаем если 5 файлов подряд не найдено
+                }
+                
+                let checkedFormats = 0;
+                let found = false;
+                
+                function checkFormat() {
+                    if (checkedFormats >= formats.length) {
+                        // Все форматы проверены, изображение не найдено
+                        missingCount++;
+                        index++;
+                        setTimeout(checkNextImage, 10);
+                        return;
+                    }
+                    
+                    const format = formats[checkedFormats];
+                    const paths = [
+                        `${index}.${format}`,
+                        `img/${index}.${format}`,
+                        `images/${index}.${format}`
+                    ];
+                    
+                    let pathIndex = 0;
+                    
+                    function checkPath() {
+                        if (pathIndex >= paths.length) {
+                            // Все пути проверены для этого формата
+                            checkedFormats++;
+                            setTimeout(checkFormat, 10);
+                            return;
+                        }
+                        
+                        const path = paths[pathIndex];
+                        const img = new Image();
+                        
+                        img.onload = function() {
+                            // Изображение найдено
+                            const imgElement = document.createElement('img');
+                            imgElement.src = path;
+                            gallery.appendChild(imgElement);
+                            found = true;
+                            missingCount = 0;
+                            index++;
+                            setTimeout(checkNextImage, 10);
+                        };
+                        
+                        img.onerror = function() {
+                            // Этот путь не работает, проверяем следующий
+                            pathIndex++;
+                            setTimeout(checkPath, 10);
+                        };
+                        
+                        img.src = path;
+                    }
+                    
+                    checkPath();
+                }
+                
+                checkFormat();
+            }
+            
+            checkNextImage();
+        }
+        
+        // Запускаем загрузку когда страница загрузится
+        window.onload = loadImages;
+    </script>
+</body>
+</html>
